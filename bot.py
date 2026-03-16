@@ -2,7 +2,7 @@ import os
 import json
 import requests
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler, ContextTypes
+from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 AI_KEY = os.getenv("AI_API")
@@ -23,20 +23,16 @@ def save_memory(data):
 memory = load_memory()
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Hello 👋\nI am your AI assistant.\nJust send a message and I will reply."
-    )
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("Hello 👋 I am your AI assistant.")
 
 
-async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def welcome(update: Update, context: CallbackContext):
     for member in update.message.new_chat_members:
-        await update.message.reply_text(
-            f"Welcome {member.first_name} 🎉\nNice to meet you!"
-        )
+        update.message.reply_text(f"Welcome {member.first_name} 🎉")
 
 
-async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def reply(update: Update, context: CallbackContext):
 
     user_id = str(update.message.from_user.id)
     user_text = update.message.text
@@ -53,7 +49,7 @@ async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Content-Type": "application/json"
         },
         json={
-            "model": "gpt-4.1-mini",
+            "model": "gpt-4o-mini",
             "messages": memory[user_id][-10:]
         }
     )
@@ -63,13 +59,16 @@ async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     memory[user_id].append({"role": "assistant", "content": ai_reply})
     save_memory(memory)
 
-    await update.message.reply_text(ai_reply)
+    update.message.reply_text(ai_reply)
 
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+updater = Updater(BOT_TOKEN, use_context=True)
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply))
+dp = updater.dispatcher
 
-app.run_polling()
+dp.add_handler(CommandHandler("start", start))
+dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))
+dp.add_handler(MessageHandler(Filters.text & ~Filters.command, reply))
+
+updater.start_polling()
+updater.idle()
