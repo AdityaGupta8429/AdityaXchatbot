@@ -4,8 +4,8 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler, ContextTypes
 
-BOT_TOKEN = os.getenv("8770058811:AAFTTTmaRssSw9P-PV79WUBRekxvtCTYMUY")
-AI_KEY = os.getenv("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")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+AI_KEY = os.getenv("AI_API")
 
 MEMORY_FILE = "memory.json"
 
