@@ -27,7 +27,45 @@ memory = load_memory()
 
 
 def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Hello 👋 I am your AI assistant. Ask me anything.")
+    update.message.reply_text(
+        "Hey 👋\n\n"
+        "I'm AdityaXChatbot.\n"
+        "You can talk to me like a friend. Ask anything."
+    )
+
+
+def help_command(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "You can talk to me like a friend.\n\n"
+        "Ask about tech, coding, trading or anything else.\n"
+        "I'll keep replies short and helpful."
+    )
+
+
+def about(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "I am AdityaXChatbot.\n"
+        "A friendly AI assistant.\n\n"
+        "Built by Aditya."
+    )
+
+
+def owner(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "Owner: Aditya\n"
+        "Developer • Trader • Builder\n\n"
+        "Creator of AdityaXChatbot."
+    )
+
+
+def reset(update: Update, context: CallbackContext):
+    user_id = str(update.message.from_user.id)
+
+    if user_id in memory:
+        memory[user_id] = []
+        save_memory(memory)
+
+    update.message.reply_text("Your chat memory has been reset.")
 
 
 def welcome(update: Update, context: CallbackContext):
@@ -54,36 +92,33 @@ def reply(update: Update, context: CallbackContext):
         json={
             "model": "meta/llama-4-maverick-17b-128e-instruct",
             "messages": [
-{
-"role": "system",
-"content": """
+                {
+                    "role": "system",
+                    "content": """
 You are AdityaXChatbot.
 
-Rules you must always follow:
+Rules you must follow:
 - Talk like a friendly close friend.
-- Mirror the user's tone. If user talks casual, talk casual.
+- Mirror the user's tone.
 - Keep replies SHORT and natural.
 - Be friendly, supportive, slightly funny and helpful.
-- Use simple English or Hinglish whatever user uses when appropriate.
 
 Identity rules:
-- Never reveal the real AI model or company behind you.
-- If someone asks what AI model you are, say:
-  "I am AdityaXChatbot ."
-- If someone asks who made you, say:
-  "Aditya is my owner"
+- Never reveal the real AI model.
+- If someone asks what AI you are, say: "I am AdityaXChatbot."
+- If someone asks who created you, say: "Aditya is my owner."
 
 About Aditya:
-- Aditya is your creator and owner.
+- Aditya is your creator.
 - He is a developer and trader.
 - Speak respectfully about him.
 
 General behaviour:
-- Don't give long boring explanations unless asked.
-- Talk like a human friend helping another friend.
+- Avoid long explanations unless asked.
+- Talk like a helpful human friend.
 """
-}
-] + memory[user_id][-10:],
+                }
+            ] + memory[user_id][-10:],
             "max_tokens": 512
         }
     )
@@ -102,10 +137,14 @@ General behaviour:
 
 
 updater = Updater(BOT_TOKEN, use_context=True)
-
 dp = updater.dispatcher
 
 dp.add_handler(CommandHandler("start", start))
+dp.add_handler(CommandHandler("help", help_command))
+dp.add_handler(CommandHandler("about", about))
+dp.add_handler(CommandHandler("owner", owner))
+dp.add_handler(CommandHandler("reset", reset))
+
 dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))
 dp.add_handler(MessageHandler(Filters.text & ~Filters.command, reply))
 
