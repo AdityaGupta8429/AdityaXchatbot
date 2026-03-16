@@ -9,6 +9,7 @@ AI_KEY = os.getenv("AI_API")
 
 MEMORY_FILE = "memory.json"
 
+
 def load_memory():
     try:
         with open(MEMORY_FILE, "r") as f:
@@ -16,15 +17,17 @@ def load_memory():
     except:
         return {}
 
+
 def save_memory(data):
     with open(MEMORY_FILE, "w") as f:
         json.dump(data, f)
+
 
 memory = load_memory()
 
 
 def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Hello 👋 I am your AI assistant.")
+    update.message.reply_text("Hello 👋 I am your AI assistant. Ask me anything.")
 
 
 def welcome(update: Update, context: CallbackContext):
@@ -43,18 +46,24 @@ def reply(update: Update, context: CallbackContext):
     memory[user_id].append({"role": "user", "content": user_text})
 
     response = requests.post(
-        "https://api.openai.com/v1/chat/completions",
+        "https://integrate.api.nvidia.com/v1/chat/completions",
         headers={
             "Authorization": f"Bearer {AI_KEY}",
             "Content-Type": "application/json"
         },
         json={
-            "model": "gpt-4o-mini",
-            "messages": memory[user_id][-10:]
+            "model": "meta/llama-4-maverick-17b-128e-instruct",
+            "messages": memory[user_id][-10:],
+            "max_tokens": 512
         }
     )
 
-    ai_reply = response.json()["choices"][0]["message"]["content"]
+    data = response.json()
+
+    try:
+        ai_reply = data["choices"][0]["message"]["content"]
+    except:
+        ai_reply = "⚠️ AI error. Try again."
 
     memory[user_id].append({"role": "assistant", "content": ai_reply})
     save_memory(memory)
@@ -69,6 +78,8 @@ dp = updater.dispatcher
 dp.add_handler(CommandHandler("start", start))
 dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))
 dp.add_handler(MessageHandler(Filters.text & ~Filters.command, reply))
+
+print("Bot started...")
 
 updater.start_polling()
 updater.idle()
