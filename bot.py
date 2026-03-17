@@ -30,7 +30,7 @@ def start(update: Update, context: CallbackContext):
     update.message.reply_text(
         "Hey 👋\n\n"
         "I'm AdityaXChatbot.\n"
-        "You can talk to me like a friend. Ask anything."
+        "What can I help you with today?"
     )
 
 
