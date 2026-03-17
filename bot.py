@@ -27,10 +27,11 @@ memory = load_memory()
 
 
 def start(update: Update, context: CallbackContext):
+    name = update.message.from_user.first_name
+
     update.message.reply_text(
-        "Hey 👋\n\n"
-        "I'm AdityaXChatbot.\n"
-        "What can I help you with today?"
+        f"Hey {name} 👋\n\n"
+        "How can I help you today?"
     )
 
 
